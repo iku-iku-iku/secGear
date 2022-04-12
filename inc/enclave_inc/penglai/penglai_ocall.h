@@ -18,8 +18,6 @@
 #include "status.h"
 #include "enclave.h"
 
-#define OCALL_USER_DEFINED	4
-
 /* New struct used to hint the in | out buf size. */
 typedef struct _untrusted_mem_info_t
 {
