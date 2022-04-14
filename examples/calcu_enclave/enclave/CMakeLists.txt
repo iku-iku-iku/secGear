@@ -52,7 +52,7 @@ if(CC_PL)
     set(AUTO_FILES  ${CMAKE_CURRENT_BINARY_DIR}/${PREFIX}_t.h ${CMAKE_CURRENT_BINARY_DIR}/${PREFIX}_t.c ${CMAKE_CURRENT_BINARY_DIR}/${PREFIX}_args.h)
     add_custom_command(OUTPUT ${AUTO_FILES}
     DEPENDS ${CURRENT_ROOT_PATH}/${EDL_FILE}
-    COMMAND ${CODEGEN} --${CODETYPE} --trusted ${CURRENT_ROOT_PATH}/${EDL_FILE} --search-path ${LOCAL_ROOT_PATH}/inc/host_inc/penglai)
+    COMMAND ${CODEGEN} --${CODETYPE} --trusted ${CURRENT_ROOT_PATH}/${EDL_FILE} --search-path ${LOCAL_ROOT_PATH}/inc/host_inc/penglai --search-path ${CMAKE_CURRENT_SOURCE_DIR}/../penglai_calcu_lib/include)
 endif()
 
 set(COMMON_C_FLAGS "-W -Wall -Werror  -fno-short-enums  -fno-omit-frame-pointer -fstack-protector \
@@ -175,6 +175,7 @@ if(CC_PL)
     set(MUSL_LIBC ${MUSL_LIB_DIR}/libc.a)
     set(GCC_LIB ${SDK_LIB_DIR}/libgcc.a)
     set(SECGEAR_TEE_LIB ${CMAKE_BINARY_DIR}/lib/libsecgear_tee.a)
+    set(CALCU_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../penglai_calcu_lib/package)
 
     set(SOURCE_C_OBJS "")
     foreach(SOURCE_FILE ${SOURCE_FILES})
@@ -185,7 +186,7 @@ if(CC_PL)
             DEPENDS ${SOURCE_FILES}
             COMMAND gcc -Wall -I${SDK_INCLUDE_DIR} -I${CMAKE_CURRENT_BINARY_DIR} -I${CMAKE_BINARY_DIR}/inc
                 -I${LOCAL_ROOT_PATH}/inc/host_inc -I${LOCAL_ROOT_PATH}/inc/host_inc/penglai -I${LOCAL_ROOT_PATH}/inc/enclave_inc
-                -I${LOCAL_ROOT_PATH}/inc/enclave_inc/penglai -c -o ${SOURCE_OBJ} ${SOURCE_FILE}
+                -I${LOCAL_ROOT_PATH}/inc/enclave_inc/penglai -I ${CMAKE_CURRENT_SOURCE_DIR}/../penglai_calcu_lib/libpenglai_calcu_lib/calculate_lib -c -o ${SOURCE_OBJ} ${SOURCE_FILE}
             COMMENT "generate SOURCE_OBJ"
         )
         list(APPEND SOURCE_C_OBJS ${SOURCE_OBJ})
@@ -204,8 +205,11 @@ if(CC_PL)
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${OUTPUT}
         DEPENDS ${APP_C_OBJ} ${SOURCE_C_OBJS} ${SDK_APP_LIB} ${MUSL_LIBC} ${GCC_LIB}
-        COMMAND ld -static -L${SDK_LIB_DIR} -L${MUSL_LIB_DIR} -L/usr/lib64 -lpenglai-enclave-eapp -lsecgear_tee -lc
+        COMMAND ld -static -L${SDK_LIB_DIR} -L${MUSL_LIB_DIR} -L/usr/lib64
+            -L${CALCU_LIB_DIR} -lpenglai_calcu_lib -lpenglai_tcalcu
+            -lpenglai-enclave-eapp -lsecgear_tee -lc
             -o ${CMAKE_CURRENT_SOURCE_DIR}/${OUTPUT} ${APP_C_OBJ} ${SOURCE_C_OBJS} ${SDK_APP_LIB} ${SECGEAR_TEE_LIB}
+            ${CALCU_LIB_DIR}/libpenglai_calcu_lib.a ${CALCU_LIB_DIR}/libpenglai_tcalcu.a
             ${MUSL_LIBC} ${GCC_LIB} -T ${PLSDK}/app.lds
         COMMAND chmod -x ${CMAKE_CURRENT_SOURCE_DIR}/${OUTPUT}
         COMMENT "generate penglai-ELF"

@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "calculate.h"
 #include "calcu_enclave_t.h"
 
 #define BUF_LEN 32
@@ -27,5 +28,13 @@ void helloworld()
         eapp_print("%s\n", buf);
     }
     eapp_print("enclave end ocall get_string\n");
+    
+    // test lib function
+    eapp_print("- - - enclave test lib function - - -\n");
+    calcu_two_num(ADD, 1, 4);
+    calcu_two_num(MINOR, 6, 2);
+    calcu_two_num(MULTIPLY, 2, 3);
+    calcu_two_num(DEVIDE, 9, 3);
+    eapp_print("- - - test lib finish - - -\n");
     return;
 }

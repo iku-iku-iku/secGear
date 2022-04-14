@@ -34,7 +34,7 @@ if(CC_PL)
     set(AUTO_FILES  ${CMAKE_CURRENT_BINARY_DIR}/${PREFIX}_u.h ${CMAKE_CURRENT_BINARY_DIR}/${PREFIX}_u.c)
     add_custom_command(OUTPUT ${AUTO_FILES}
     DEPENDS ${CURRENT_ROOT_PATH}/${EDL_FILE}
-    COMMAND ${CODEGEN} --${CODETYPE} --untrusted ${CURRENT_ROOT_PATH}/${EDL_FILE} --search-path ${LOCAL_ROOT_PATH}/inc/host_inc/penglai)
+    COMMAND ${CODEGEN} --${CODETYPE} --untrusted ${CURRENT_ROOT_PATH}/${EDL_FILE} --search-path ${LOCAL_ROOT_PATH}/inc/host_inc/penglai --search-path ${CMAKE_CURRENT_SOURCE_DIR}/../penglai_calcu_lib/include)
 endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIE")
@@ -72,14 +72,17 @@ endif()
 if(CC_PL)
     if(${CMAKE_VERSION} VERSION_LESS "3.13.0")
         link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+        link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../penglai_calcu_lib/package)
     endif()
     add_executable(${OUTPUT} ${SOURCE_FILE} ${AUTO_FILES})
+    target_link_libraries(${OUTPUT} libpenglai_ucalcu.a)
     target_include_directories(${OUTPUT} PRIVATE
 			${LOCAL_ROOT_PATH}/inc/host_inc
 			${LOCAL_ROOT_PATH}/inc/host_inc/penglai
 			${CMAKE_CURRENT_BINARY_DIR})
     if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0")
         target_link_directories(${OUTPUT} PRIVATE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+        target_link_directories(${OUTPUT} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../penglai_calcu_lib/package)
     endif()
 endif()
 
