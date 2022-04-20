@@ -14,7 +14,7 @@ enclave {
     include "stdbool.h"
     include "secgear_urts.h"
     from "secgear_tstdc.edl" import *; 
-    from "secgear_tssl.edl" import *;
+    from "sgx_tsgxssl.edl" import *;
     trusted {
         public size_t seal_key([in, size = file_name_len] const char *file_name, size_t file_name_len,
                                [in, size = pw_len] char *password, size_t pw_len,

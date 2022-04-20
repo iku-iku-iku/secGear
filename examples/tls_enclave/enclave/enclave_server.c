@@ -20,6 +20,7 @@
 #include "tls_enclave_t.h"
 #include "status.h"
 #include "secgear_dataseal.h"
+#include "print.h"
 
 #define BUF_SIZE 1024
 #define MAX_ENC_KEY_LEN 4096
@@ -39,32 +40,40 @@ size_t seal_key(const char *file_name, size_t file_name_len, char *password, siz
     if (file_name == NULL || file_name_len == 0 || password == NULL || pw_len == 0 || enc_buf == NULL) {
         return 0;
     }
+    eapp_print("[seal_key] Before BIO_new_file()\n");
     r_key = BIO_new_file(file_name, "r");
     if (r_key == NULL) {
         goto end;
     };
+    eapp_print("[seal_key] Before PEM_read_bio_RSAPrivateKey()\n");
     rsa_key = PEM_read_bio_RSAPrivateKey(r_key, NULL, NULL, password);
     if (rsa_key == NULL) {
         goto end;
     };
+    eapp_print("[seal_key] Before BIO_new()\n");
     r_prikey = BIO_new(BIO_s_mem());
     if (r_prikey == NULL) {
         goto end;
     }
+    eapp_print("[seal_key] Before PEM_write_bio_RSAPrivateKey()\n");
     if (!PEM_write_bio_RSAPrivateKey(r_prikey, rsa_key, NULL, NULL, 0, NULL, NULL)) {
         goto end;
     }
+    eapp_print("[seal_key] Before BIO_ctrl_pending()\n");
     buf_len = BIO_ctrl_pending(r_prikey);
     if (buf_len == 0) {
         goto end;
     }
+    eapp_print("[seal_key] Before malloc()\n");
     buf = (uint8_t *)malloc(buf_len);
     if (buf == NULL) {
         goto end;
     }
+    eapp_print("[seal_key] Before BIO_read()\n");
     if ((size_t)BIO_read(r_prikey, buf, buf_len) != buf_len) {
         goto end;
     }
+    eapp_print("[seal_key] Before cc_enclave_get_sealed_data_size()\n");
     sealed_data_len = cc_enclave_get_sealed_data_size(buf_len, strlen((const char *)ADD_DATA_RAW));
     if (sealed_data_len == UINT32_MAX || enc_buf_len < sealed_data_len) {
         goto end;
@@ -77,6 +86,7 @@ size_t seal_key(const char *file_name, size_t file_name_len, char *password, siz
     res = sealed_data_len;
 
 end:
+    eapp_print("[seal_key] Before end()\n");
     BIO_free(r_key);
     BIO_free(r_prikey);
     RSA_free(rsa_key);
