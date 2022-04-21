@@ -14,18 +14,18 @@
 #define _PENGLAI_SEAL_H_
 
 #include <stdint.h>
-#include <stdio.h>
+#include "seal.h"
 
-#define SEAL_DATA_FN(in, inl, out, outl, aad, aadl) penglai_seal_data(in, inl, out, outl, aad, aadl)
-#define UNSEAL_DATA_FN(in, out, outl, aad, aadl) penglai_unseal_data(in, out, outl, aad, aadl)
+#define SEAL_DATA_FN(in, inl, out, outl, aad, aadl) internel_penglai_seal_data(in, inl, out, outl, aad, aadl)
+#define UNSEAL_DATA_FN(in, out, outl, aad, aadl) internel_penglai_unseal_data(in, out, outl, aad, aadl)
 
-uint32_t get_sealed_data_size_ex(uint32_t seal_data_len, uint32_t aad_len);
+uint32_t get_sealed_data_size_ex(uint32_t aad_len, uint32_t seal_data_len);
 uint32_t get_encrypted_text_size_ex(const void *sealed_data);
 uint32_t get_add_text_size_ex(const void *sealed_data);
 
-uint32_t penglai_seal_data(uint8_t *seal_data, uint32_t seal_data_len, void *sealed_data,
+uint32_t internel_penglai_seal_data(uint8_t *seal_data, uint32_t seal_data_len, void *sealed_data,
                 uint32_t sealed_data_len, uint8_t *mac_data, uint32_t mac_data_len);
-uint32_t penglai_unseal_data(void *sealed_data, uint8_t *decrypted_data, uint32_t *decrypted_data_len,
+uint32_t internel_penglai_unseal_data(void *sealed_data, uint8_t *decrypted_data, uint32_t *decrypted_data_len,
                 uint8_t *mac_data, uint32_t *mac_data_len);
 
 #endif

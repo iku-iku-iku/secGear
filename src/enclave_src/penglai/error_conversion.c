@@ -17,7 +17,7 @@ cc_enclave_result_t conversion_res_status(uint32_t enclave_res)
     switch (enclave_res) {
         case 0:
             return CC_SUCCESS;
-        case 1:
+        case -1:
             return CC_FAIL;
         default:
             return CC_ERROR_UNEXPECTED;

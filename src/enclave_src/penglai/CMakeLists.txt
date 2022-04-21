@@ -12,7 +12,8 @@ set(SOURCE_FILES ${SOURCE_FILES} penglai_seal_data.c  bottom_memory_check.c erro
 
 set(PENGLAI_MUSL ${PLSDK}/musl)
 set(SDK_LIB_DIR ${PLSDK}/lib)
-set(SDK_INCLUDE_DIR ${SDK_LIB_DIR}/app/include)
+set(SDK_EAPP_INCLUDE_DIR ${SDK_LIB_DIR}/app/include)
+set(SDK_GM_INCLUDE_DIR ${SDK_LIB_DIR}/gm/include)
 
 set(CMAKE_C_FLAGS "${COMMON_C_FLAGS} -fPIC")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS}")
@@ -23,7 +24,8 @@ target_include_directories(${target_lib} PRIVATE
 	${PENGLAI_MUSL}/include
     ${PENGLAI_MUSL}/arch/riscv64
     ${PENGLAI_MUSL}/obj/include
-    ${SDK_INCLUDE_DIR}
+    ${SDK_EAPP_INCLUDE_DIR}
+    ${SDK_GM_INCLUDE_DIR}
     ${LOCAL_ROOT_PATH}/inc/enclave_inc/penglai)
 
 install(TARGETS  ${target_lib}

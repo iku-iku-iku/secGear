@@ -30,6 +30,10 @@ if(CC_SGX)
     add_definitions(-DPATH="${CMAKE_CURRENT_BINARY_DIR}/enclave/seal_data.signed.so")
 endif()
 
+if(CC_PL)
+    set(CODETYPE penglai)
+    add_definitions(-DPATH="${CMAKE_CURRENT_SOURCE_DIR}/enclave/seal_data_penglai-ELF")
+endif()
 
 ADD_SUBDIRECTORY(${CURRENT_ROOT_PATH}/enclave)
 ADD_SUBDIRECTORY(${CURRENT_ROOT_PATH}/host)
