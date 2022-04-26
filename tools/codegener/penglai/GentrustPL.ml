@@ -343,7 +343,7 @@ let set_main_func =
         "";
         "    if(in_buf) free(in_buf);";
         "    if(out_buf){";
-        "        memcpy(out_buf_umem_ptr, out_buf, mem_info->out_buf_size);";
+        "        memcpy(out_buf_umem_ptr, out_buf, output_bytes_written);";
         "        free(out_buf);";
         "    }";
         "";

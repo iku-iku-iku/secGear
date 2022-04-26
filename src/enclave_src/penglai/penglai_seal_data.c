@@ -12,8 +12,41 @@
 
 #include "status.h"
 #include "seal.h"
+// #include "print.h"
 #include "dataseal_internal.h"
 
+
+// void printHexsecGearInEn(unsigned char *c, int n)
+// {
+//     int m = n / 16;
+//     int left = n - m * 16;
+//     char buf[33] = {0};
+//     char num;
+//     int top, below;
+//     eapp_print("n: %d, m: %d, left: %d", n, m, left);
+//     for(int j = 0; j < m; j++){
+//         for(int i = 0; i < 16; i++){
+//             num = *(c + j*16 + i);
+//             top = (num >> 4) & 0xF;
+//             below = num & 0xF;
+//             buf[2 * i] = (top < 10 ? '0'+top : 'a'+top-10);
+//             buf[2 * i + 1] = (below < 10 ? '0'+below : 'a'+below-10);
+//         }
+//         buf[32] = '\0';
+//         eapp_print("%d - %d: %s", j*16, j*16+15, buf);
+//     }
+// 	if(left != 0){
+//         for(int i = 0; i < left; i++){
+//             num = *(c + m*16 + i);
+//             top = (num >> 4) & 0xF;
+//             below = num & 0xF;
+//             buf[2 * i] = (top < 10 ? '0'+top : 'a'+top-10);
+//             buf[2 * i + 1] = (below < 10 ? '0'+below : 'a'+below-10);
+//         }
+//         buf[2 * left] = '\0';
+//         eapp_print("%d - %d: %s", m*16, m*16+left-1, buf);
+//     }
+// }
 
 uint32_t get_sealed_data_size_ex(uint32_t aad_len, uint32_t seal_data_len)
 {

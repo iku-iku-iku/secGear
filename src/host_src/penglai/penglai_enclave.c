@@ -139,6 +139,38 @@ cc_enclave_result_t handle_ocall(
     return CC_SUCCESS;
 }
 
+// void printHexsecGearInhost(unsigned char *c, int n)
+// {
+//     int m = n / 16;
+//     int left = n - m * 16;
+//     char buf[33] = {0};
+//     char num;
+//     int top, below;
+//     printf("n: %d, m: %d, left: %d\n", n, m, left);
+//     for(int j = 0; j < m; j++){
+//         for(int i = 0; i < 16; i++){
+//             num = *(c + j*16 + i);
+//             top = (num >> 4) & 0xF;
+//             below = num & 0xF;
+//             buf[2 * i] = (top < 10 ? '0'+top : 'a'+top-10);
+//             buf[2 * i + 1] = (below < 10 ? '0'+below : 'a'+below-10);
+//         }
+//         buf[32] = '\0';
+//         printf("%d - %d: %s\n", j*16, j*16+15, buf);
+//     }
+// 	if(left != 0){
+//         for(int i = 0; i < left; i++){
+//             num = *(c + m*16 + i);
+//             top = (num >> 4) & 0xF;
+//             below = num & 0xF;
+//             buf[2 * i] = (top < 10 ? '0'+top : 'a'+top-10);
+//             buf[2 * i + 1] = (below < 10 ? '0'+below : 'a'+below-10);
+//         }
+//         buf[2 * left] = '\0';
+//         printf("%d - %d: %s\n", m*16, m*16+left-1, buf);
+//     }
+// }
+
 cc_enclave_result_t cc_enclave_call_function(
     cc_enclave_t *enclave,
     uint32_t function_id,
@@ -215,6 +247,10 @@ cc_enclave_result_t cc_enclave_call_function(
     }
 
     memcpy(output_buffer, out_buf, output_buffer_size);
+    // printf("[penglai_enclave.c host], input_buffer_size: %ld, output_buffer_size: %ld, meminfo_size: %ld\n", input_buffer_size, output_buffer_size, size_to_aligned_size(sizeof(untrusted_mem_info_t)));
+    // printf("[penglai_enclave.c host], outbuffer:\n");
+    // printHexsecGearInhost((unsigned char *)output_buffer, output_buffer_size);
+    // printf("[penglai_enclave.c host], outbuffer end\n");
     result_cc = CC_SUCCESS;
 
     free(untrusted_mem_extent);

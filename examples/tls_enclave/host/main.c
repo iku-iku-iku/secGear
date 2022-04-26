@@ -33,6 +33,38 @@
 #define MAX_ENC_KEY_LEN 4096
 #define ENC_KEY_FILE_NAME "enc_key"
 
+void printHexsecGear(unsigned char *c, int n)
+{
+    int m = n / 16;
+    int left = n - m * 16;
+    char buf[33] = {0};
+    char num;
+    int top, below;
+    printf("n: %d, m: %d, left: %d\n", n, m, left);
+    for(int j = 0; j < m; j++){
+        for(int i = 0; i < 16; i++){
+            num = *(c + j*16 + i);
+            top = (num >> 4) & 0xF;
+            below = num & 0xF;
+            buf[2 * i] = (top < 10 ? '0'+top : 'a'+top-10);
+            buf[2 * i + 1] = (below < 10 ? '0'+below : 'a'+below-10);
+        }
+        buf[32] = '\0';
+        printf("%d - %d: %s\n", j*16, j*16+15, buf);
+    }
+	if(left != 0){
+        for(int i = 0; i < left; i++){
+            num = *(c + m*16 + i);
+            top = (num >> 4) & 0xF;
+            below = num & 0xF;
+            buf[2 * i] = (top < 10 ? '0'+top : 'a'+top-10);
+            buf[2 * i + 1] = (below < 10 ? '0'+below : 'a'+below-10);
+        }
+        buf[2 * left] = '\0';
+        printf("%d - %d: %s\n", m*16, m*16+left-1, buf);
+    }
+}
+
 int set_echo_mode(int fd, int option)
 {
     struct termios term;
@@ -89,6 +121,8 @@ int get_password_and_seal_key(cc_enclave_t *context, const char *key_file_name, 
         res = CC_FAIL;
         goto end;
     }
+    printf("After seal_key in host, enc_key length: %ld, content:\n", retval);
+    printHexsecGear((unsigned char *)enc_key, retval);
     if (fwrite(enc_key, sizeof(char), retval, fp) != retval) {
         fclose(fp);
         res = CC_FAIL;
@@ -156,11 +190,11 @@ int main(int argc, const char *argv[])
         close(server_fd);
         return CC_FAIL;
     }
-    res = get_password_and_seal_key(context, argv[3], ENC_KEY_FILE_NAME);
-    if (res !=  CC_SUCCESS) {
-        printf("get_password_and_seal_key error\n");
-        goto end;
-    }
+    // res = get_password_and_seal_key(context, argv[3], ENC_KEY_FILE_NAME);
+    // if (res !=  CC_SUCCESS) {
+    //     printf("get_password_and_seal_key error\n");
+    //     goto end;
+    // }
     res = start_enclave_tls(context, &retval, tlsc_fd, argv[2], strlen(argv[2]) + 1, ENC_KEY_FILE_NAME, 
                             strlen(ENC_KEY_FILE_NAME) + 1);
     if (res !=  CC_SUCCESS || retval !=  CC_SUCCESS) {

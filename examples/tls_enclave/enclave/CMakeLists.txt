@@ -109,6 +109,7 @@ if(CC_PL)
     set(SDK_LIB_DIR ${PLSDK}/lib)
     set(SDK_INCLUDE_DIR ${SDK_LIB_DIR}/app/include)
     set(SDK_APP_LIB ${SDK_LIB_DIR}/libpenglai-enclave-eapp.a)
+    set(SDK_GM_LIB ${SDK_LIB_DIR}/libpenglai-enclave-gm.a)
     set(MUSL_LIB_DIR ${PLSDK}/musl/lib)
     set(MUSL_LIBC ${MUSL_LIB_DIR}/libc.a)
     set(GCC_LIB ${SDK_LIB_DIR}/libgcc.a)
@@ -142,11 +143,11 @@ if(CC_PL)
 
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${OUTPUT}
-        DEPENDS ${APP_C_OBJ} ${SOURCE_C_OBJS} ${SDK_APP_LIB} ${MUSL_LIBC} ${GCC_LIB}
+        DEPENDS ${APP_C_OBJ} ${SOURCE_C_OBJS} ${SDK_APP_LIB} ${SDK_GM_LIB} ${MUSL_LIBC} ${GCC_LIB}
         COMMAND ld -static -L${SDK_LIB_DIR} -L${MUSL_LIB_DIR} -L/usr/lib64
             -L${SSL_PATH}/lib64 -lsgx_tsgxssl_crypto -lsgx_tsgxssl_ssl -lsgx_tsgxssl
-            -lpenglai-enclave-eapp -lsecgear_tee -lc
-            -o ${CMAKE_CURRENT_SOURCE_DIR}/${OUTPUT} ${APP_C_OBJ} ${SOURCE_C_OBJS} --start-group ${SECGEAR_TEE_LIB} ${SDK_APP_LIB}
+            -lpenglai-enclave-eapp -lpenglai-enclave-gm -lsecgear_tee -lc
+            -o ${CMAKE_CURRENT_SOURCE_DIR}/${OUTPUT} ${APP_C_OBJ} ${SOURCE_C_OBJS} --start-group ${SECGEAR_TEE_LIB} ${SDK_APP_LIB} ${SDK_GM_LIB}
             ${SSL_PATH}/lib64/libsgx_tsgxssl_ssl.a ${SSL_PATH}/lib64/libsgx_tsgxssl_crypto.a ${SSL_PATH}/lib64/libsgx_tsgxssl.a
             ${MUSL_LIBC} ${GCC_LIB} --end-group -T ${PLSDK}/app.lds
         COMMAND chmod -x ${CMAKE_CURRENT_SOURCE_DIR}/${OUTPUT}
