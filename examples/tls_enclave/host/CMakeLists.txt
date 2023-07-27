@@ -61,7 +61,9 @@ if(CC_PL)
     target_include_directories(${OUTPUT} PRIVATE
 			${LOCAL_ROOT_PATH}/inc/host_inc
 			${LOCAL_ROOT_PATH}/inc/host_inc/penglai
-			${CMAKE_CURRENT_BINARY_DIR})
+			${CMAKE_CURRENT_BINARY_DIR}
+            /usr/local/openssl/include/
+            )
     if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0")
         target_link_directories(${OUTPUT} PRIVATE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
         target_link_directories(${OUTPUT} PRIVATE ${SSL_PATH}/lib64)

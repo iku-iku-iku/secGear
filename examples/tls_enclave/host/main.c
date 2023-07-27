@@ -129,12 +129,12 @@ int get_password_and_seal_key(cc_enclave_t *context, const char *key_file_name, 
         goto end;
     }
     fclose(fp);
-    if (remove(key_file_name) == 0) {
-        printf("delete origin key file success!\n");
-    } else {
-        printf("delete origin key file error!\n");
-        res = CC_FAIL;
-    }
+    // if (remove(key_file_name) == 0) {
+    //     printf("delete origin key file success!\n");
+    // } else {
+    //     printf("delete origin key file error!\n");
+    //     res = CC_FAIL;
+    // }
 
 end:
     memset(password, 0, pw_len);
@@ -190,11 +190,12 @@ int main(int argc, const char *argv[])
         close(server_fd);
         return CC_FAIL;
     }
-    // res = get_password_and_seal_key(context, argv[3], ENC_KEY_FILE_NAME);
-    // if (res !=  CC_SUCCESS) {
-    //     printf("get_password_and_seal_key error\n");
-    //     goto end;
-    // }
+    printf("Create secgear enclave success\n");
+    res = get_password_and_seal_key(context, argv[3], ENC_KEY_FILE_NAME);
+    if (res !=  CC_SUCCESS) {
+        printf("get_password_and_seal_key error\n");
+        goto end;
+    }
     res = start_enclave_tls(context, &retval, tlsc_fd, argv[2], strlen(argv[2]) + 1, ENC_KEY_FILE_NAME, 
                             strlen(ENC_KEY_FILE_NAME) + 1);
     if (res !=  CC_SUCCESS || retval !=  CC_SUCCESS) {

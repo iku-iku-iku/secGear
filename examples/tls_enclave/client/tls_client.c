@@ -40,21 +40,26 @@ int main(int argc, const char *argv[])
         printf("usage: %s port ca_file\n", argv[0]);
         return -1;
     }
-
+    printf("[client] Before SSL_load_error_strings()\n");
     SSL_load_error_strings();
+    printf("[client] Before SSLeay_add_ssl_algorithms()\n");
     SSLeay_add_ssl_algorithms();
     meth = TLS_method();
     if (meth == NULL) {
         return -1;
     }
+    printf("[client] Before SSL_CTX_new()\n");
     ctx = SSL_CTX_new(meth);
     if (ctx == NULL) {
         return -1;
     }
+    printf("[client] Before SSL_CTX_set_verify()\n");
     SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
+    printf("[client] Before SSL_CTX_load_verify_locations()\n");
     if (SSL_CTX_load_verify_locations(ctx, argv[2], NULL) <= 0) {
         goto end;
     }
+    printf("[client] Create client socket()\n");
     memset(&client_addr, 0, sizeof(client_addr));
     client_addr.sin_family = AF_INET;
     client_addr.sin_port = htons(atoi(argv[1]));
@@ -63,6 +68,7 @@ int main(int argc, const char *argv[])
     if (fd < 0) {
         goto end;
     } 
+    printf("[client] connect to server\n");
     ret = connect(fd, (struct sockaddr *)&client_addr, sizeof(client_addr));
     if (ret < 0) {
         goto end;
@@ -71,13 +77,19 @@ int main(int argc, const char *argv[])
     if (ssl == NULL) {
         goto end;
     }
+     // 将 SSL 对象与套接字关联起来
     SSL_set_fd(ssl, fd);
+    // 发起 SSL 握手
+    printf("[client] Before SSL_connect()\n");
     if (SSL_connect(ssl) <= 0) {
         goto end;
     }
+    printf("[client] After SSL_connect()\n");
+    // 向服务器发送数据
     if (SSL_write(ssl, "hello enclave!", sizeof("hello enclave!")) <= 0) {
         goto end;
     }
+    // 从服务器接收数据
     printf("send data: %s\n", "hello enclave!");
     if (SSL_read(ssl, buf, BUF_LEN - 1) <= 0) {
         goto end;

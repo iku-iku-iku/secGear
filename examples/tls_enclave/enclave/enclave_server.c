@@ -143,14 +143,14 @@ size_t seal_key(const char *file_name, size_t file_name_len, char *password, siz
         if(decrypted_seal_data[i] != buf[i])
             eapp_print("byte %d changed, before: %c, after: %c", i, buf[i], decrypted_seal_data[i]);
     }
-
+    eapp_print("ADD_DATA:%s \n", demac_data);
     res = sealed_data_len;
 
     eapp_print("[seal_key] sealed_data_len: %d\n", sealed_data_len);
     eapp_print("[seal_key] sealed_data content:");
     printHexsecGear((unsigned char *)enc_buf, sealed_data_len);
 end:
-    eapp_print("[seal_key] Before end()\n");
+    eapp_print("[seal_key] Before end() res:%d\n",res);
     BIO_free(r_key);
     BIO_free(r_prikey);
     RSA_free(rsa_key);
@@ -174,47 +174,47 @@ int unseal_enc_data(char **data_p, size_t *data_len_p, const char *enc_data)
 
     char *file_name = "server.key";
     size_t file_name_len = strlen(file_name);
-    char *password = "shang";
+    char *password = "12345";
     size_t pw_len = strlen(password);
     char *enc_buf = malloc(4096);
     size_t enc_buf_len = 4096;
     if (file_name == NULL || file_name_len == 0 || password == NULL || pw_len == 0 || enc_buf == NULL) {
         return 0;
     }
-    eapp_print("[seal_key] Before BIO_new_file()\n");
+    eapp_print("[unseal_enc_data] Before BIO_new_file()\n");
     r_key = BIO_new_file(file_name, "r");
     if (r_key == NULL) {
         goto end;
     };
-    eapp_print("[seal_key] Before PEM_read_bio_RSAPrivateKey()\n");
+    eapp_print("[unseal_enc_data] Before PEM_read_bio_RSAPrivateKey()\n");
     rsa_key = PEM_read_bio_RSAPrivateKey(r_key, NULL, NULL, password);
     if (rsa_key == NULL) {
         goto end;
     };
-    eapp_print("[seal_key] Before BIO_new()\n");
+    eapp_print("[unseal_enc_data] Before BIO_new()\n");
     r_prikey = BIO_new(BIO_s_mem());
     if (r_prikey == NULL) {
         goto end;
     }
-    eapp_print("[seal_key] Before PEM_write_bio_RSAPrivateKey()\n");
+    eapp_print("[unseal_enc_data] Before PEM_write_bio_RSAPrivateKey()\n");
     if (!PEM_write_bio_RSAPrivateKey(r_prikey, rsa_key, NULL, NULL, 0, NULL, NULL)) {
         goto end;
     }
-    eapp_print("[seal_key] Before BIO_ctrl_pending()\n");
+    eapp_print("[unseal_enc_data] Before BIO_ctrl_pending()\n");
     buf_len = BIO_ctrl_pending(r_prikey);
     if (buf_len == 0) {
         goto end;
     }
-    eapp_print("[seal_key] Before malloc()\n");
+    eapp_print("[unseal_enc_data] Before malloc()\n");
     buf = (uint8_t *)malloc(buf_len);
     if (buf == NULL) {
         goto end;
     }
-    eapp_print("[seal_key] Before BIO_read()\n");
+    eapp_print("[unseal_enc_data] Before BIO_read()\n");
     if ((size_t)BIO_read(r_prikey, buf, buf_len) != buf_len) {
         goto end;
     }
-    eapp_print("[seal_key] Before cc_enclave_get_sealed_data_size()\n");
+    eapp_print("[unseal_enc_data] Before cc_enclave_get_sealed_data_size()\n");
     sealed_data_len = cc_enclave_get_sealed_data_size(buf_len, strlen((const char *)ADD_DATA_RAW));
     if (sealed_data_len == UINT32_MAX || enc_buf_len < sealed_data_len) {
         goto end;
@@ -251,7 +251,7 @@ int unseal_enc_data(char **data_p, size_t *data_len_p, const char *enc_data)
         if(decrypted_seal_data[i] != buf[i])
             eapp_print("byte %d changed, before: %c, after: %c", i, buf[i], decrypted_seal_data[i]);
     }
-    
+    eapp_print("ADD_DATA:%s \n", demac_data);
     char *add_data = NULL;
     char *data = NULL;
     size_t add_len = 0;
@@ -266,6 +266,7 @@ int unseal_enc_data(char **data_p, size_t *data_len_p, const char *enc_data)
         if(enc_data[i] != enc_buf[i])
             eapp_print("byte %d changed, true: %c, false: %c", i, enc_buf[i], enc_data[i]);
     }
+    eapp_print("ADD_DATA:%s \n", demac_data);
     eapp_print("end check");
     add_len = cc_enclave_get_add_text_size((const cc_enclave_sealed_data_t *)enc_data);
     data_len = cc_enclave_get_encrypted_text_size((const cc_enclave_sealed_data_t *)enc_data);
@@ -376,60 +377,60 @@ int start_enclave_tls(int client_fd,const char *cert, size_t cert_len, const cha
     if (client_fd <= 0 || cert == NULL || cert_len == 0 || enc_key == NULL || enc_key_len == 0) {
         return CC_ERROR_BAD_PARAMETERS;
     }
-    eapp_print("[seal_key] Before SSL_load_error_strings()\n");
+    eapp_print("[start_enclave_tls] Before SSL_load_error_strings()\n");
     SSL_load_error_strings();
-    eapp_print("[seal_key] Before SSLeay_add_ssl_algorithms()\n");
+    eapp_print("[start_enclave_tls] Before SSLeay_add_ssl_algorithms()\n");
     SSLeay_add_ssl_algorithms();
-    eapp_print("[seal_key] Before TLS_method()\n");
+    eapp_print("[start_enclave_tls] Before TLS_method()\n");
     meth = TLS_method();
     if (meth == NULL) {
         return CC_FAIL;
     }
-    eapp_print("[seal_key] Before SSL_CTX_new()\n");
+    eapp_print("[start_enclave_tls] Before SSL_CTX_new()\n");
     ctx = SSL_CTX_new(meth);
     if (ctx == NULL) {
         return CC_FAIL;
     }
-    eapp_print("[seal_key] Before SSL_CTX_use_certificate_file()\n");
+    eapp_print("[start_enclave_tls] Before SSL_CTX_use_certificate_file()\n");
     if (SSL_CTX_use_certificate_file(ctx, cert, SSL_FILETYPE_PEM) <= 0) {
         goto end;
     }
-    eapp_print("[seal_key] Before set_ctx_key()\n");
+    eapp_print("[start_enclave_tls] Before set_ctx_key()\n");
     if (set_ctx_key(ctx, enc_key) != CC_SUCCESS){
         goto end;
     }
-    eapp_print("[seal_key] Before SSL_CTX_check_private_key()\n");
+    eapp_print("[start_enclave_tls] Before SSL_CTX_check_private_key()\n");
     if (!SSL_CTX_check_private_key(ctx)) {
         goto end;
     }
-    eapp_print("[seal_key] Before SSL_new()\n");
+    eapp_print("[start_enclave_tls] Before SSL_new()\n");
     ssl = SSL_new(ctx);
     if (ssl == NULL) {
         goto end;
     }
-    eapp_print("[seal_key] Before SSL_set_fd()\n");
+    eapp_print("[start_enclave_tls] Before SSL_set_fd()\n");
     SSL_set_fd(ssl, client_fd);
-    eapp_print("[seal_key] Before SSL_set_cipher_list()\n");
+    eapp_print("[start_enclave_tls] Before SSL_set_cipher_list()\n");
     if (SSL_set_cipher_list(ssl, "ECDHE-RSA-AES128-GCM-SHA256") != 1) {
         goto end;
     }
-    eapp_print("[seal_key] Before SSL_accept()\n");
+    eapp_print("[start_enclave_tls] Before SSL_accept()\n");
     if (SSL_accept(ssl) <= 0) {
         goto end;
     }
-    eapp_print("[seal_key] Before SSL_read()\n");
+    eapp_print("[start_enclave_tls] Before SSL_read()\n");
     res = SSL_read(ssl, buf, BUF_SIZE -1); 
     if (res <= 0) {
         goto end;
     }
-    eapp_print("[seal_key] Before SSL_write()\n");
+    eapp_print("[start_enclave_tls] Before SSL_write()\n");
     if (SSL_write(ssl, buf, res) <= 0) {
         goto end;
     }
     retval = CC_SUCCESS;
 
 end:
-    eapp_print("[seal_key] In end\n");
+    eapp_print("[start_enclave_tls] In end\n");
     if (ssl != NULL) {
         SSL_shutdown(ssl);
         SSL_free(ssl);
