@@ -1,3 +1,4 @@
 *.gz
 *.zip
 prebuilt/*
+sdk/*

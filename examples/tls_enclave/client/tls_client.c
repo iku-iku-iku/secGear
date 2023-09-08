@@ -25,6 +25,38 @@
 #include "openssl/ssl.h"
 
 #define BUF_LEN 1024
+#define REPORT_SIZE 328
+void printHexsecGear(unsigned char *c, int n)
+{
+    int m = n / 16;
+    int left = n - m * 16;
+    char buf[33] = {0};
+    char num;
+    int top, below;
+    printf("n: %d, m: %d, left: %d\n", n, m, left);
+    for(int j = 0; j < m; j++){
+        for(int i = 0; i < 16; i++){
+            num = *(c + j*16 + i);
+            top = (num >> 4) & 0xF;
+            below = num & 0xF;
+            buf[2 * i] = (top < 10 ? '0'+top : 'a'+top-10);
+            buf[2 * i + 1] = (below < 10 ? '0'+below : 'a'+below-10);
+        }
+        buf[32] = '\0';
+        printf("%d - %d: %s\n", j*16, j*16+15, buf);
+    }
+	if(left != 0){
+        for(int i = 0; i < left; i++){
+            num = *(c + m*16 + i);
+            top = (num >> 4) & 0xF;
+            below = num & 0xF;
+            buf[2 * i] = (top < 10 ? '0'+top : 'a'+top-10);
+            buf[2 * i + 1] = (below < 10 ? '0'+below : 'a'+below-10);
+        }
+        buf[2 * left] = '\0';
+        printf("%d - %d: %s\n", m*16, m*16+left-1, buf);
+    }
+}
 
 int main(int argc, const char *argv[])
 {
@@ -35,6 +67,7 @@ int main(int argc, const char *argv[])
     SSL *ssl = NULL;
     char buf[BUF_LEN] = {0};   
     int ret = -1;
+    char report[REPORT_SIZE] = {0};
     
     if (argc != 3) {
         printf("usage: %s port ca_file\n", argv[0]);
@@ -77,19 +110,25 @@ int main(int argc, const char *argv[])
     if (ssl == NULL) {
         goto end;
     }
-     // 将 SSL 对象与套接字关联起来
+    
     SSL_set_fd(ssl, fd);
-    // 发起 SSL 握手
+
     printf("[client] Before SSL_connect()\n");
     if (SSL_connect(ssl) <= 0) {
         goto end;
     }
     printf("[client] After SSL_connect()\n");
-    // 向服务器发送数据
+    //get report
+     if (SSL_read(ssl, report, REPORT_SIZE) <= 0) {
+        goto end;
+    }
+    printf("receive report:");
+    printHexsecGear(report, REPORT_SIZE);
+
     if (SSL_write(ssl, "hello enclave!", sizeof("hello enclave!")) <= 0) {
         goto end;
     }
-    // 从服务器接收数据
+
     printf("send data: %s\n", "hello enclave!");
     if (SSL_read(ssl, buf, BUF_LEN - 1) <= 0) {
         goto end;

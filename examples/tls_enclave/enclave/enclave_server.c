@@ -25,6 +25,7 @@
 #define BUF_SIZE 1024
 #define MAX_ENC_KEY_LEN 4096
 #define ADD_DATA_RAW "add mac text"
+#define REPORT_SIZE 328
 
 void printHexsecGear(unsigned char *c, int n)
 {
@@ -131,7 +132,7 @@ size_t seal_key(const char *file_name, size_t file_name_len, char *password, siz
         goto end;
     }
     eapp_print("-----  start unseal  -----");
-    retval = cc_enclave_unseal_data((cc_enclave_sealed_data_t *)enc_buf,
+    retval = cc_enclave_unseal_data((const cc_enclave_sealed_data_t *)enc_buf,
         decrypted_seal_data, &encrypt_data_len, demac_data, &encrypt_add_len);
     if (retval != CC_SUCCESS) {
         eapp_print("!!!!!-----  unseal error  -----!!!!!");
@@ -143,12 +144,11 @@ size_t seal_key(const char *file_name, size_t file_name_len, char *password, siz
         if(decrypted_seal_data[i] != buf[i])
             eapp_print("byte %d changed, before: %c, after: %c", i, buf[i], decrypted_seal_data[i]);
     }
-    eapp_print("ADD_DATA:%s \n", demac_data);
     res = sealed_data_len;
 
     eapp_print("[seal_key] sealed_data_len: %d\n", sealed_data_len);
     eapp_print("[seal_key] sealed_data content:");
-    printHexsecGear((unsigned char *)enc_buf, sealed_data_len);
+    // printHexsecGear((unsigned char *)enc_buf, sealed_data_len);
 end:
     eapp_print("[seal_key] Before end() res:%d\n",res);
     BIO_free(r_key);
@@ -257,17 +257,17 @@ int unseal_enc_data(char **data_p, size_t *data_len_p, const char *enc_data)
     size_t add_len = 0;
     size_t data_len = 0;
     // int retval = CC_FAIL;
-    
-    eapp_print("- - - - -");
-    eapp_print("- - - - -");
-    eapp_print("- - - - -");
-    eapp_print("- - - check - - -");
-    for(int i = 0; i < sealed_data_len; i++){
-        if(enc_data[i] != enc_buf[i])
-            eapp_print("byte %d changed, true: %c, false: %c", i, enc_buf[i], enc_data[i]);
-    }
-    eapp_print("ADD_DATA:%s \n", demac_data);
-    eapp_print("end check");
+    //暂时取消check
+    // eapp_print("- - - - -");
+    // eapp_print("- - - - -");
+    // eapp_print("- - - - -");
+    // eapp_print("- - - check - - -");
+    // for(int i = 0; i < sealed_data_len; i++){
+    //     if(enc_data[i] != enc_buf[i])
+    //         eapp_print("byte %d changed, true: %c, false: %c", i, enc_buf[i], enc_data[i]);
+    // }
+    // eapp_print("ADD_DATA:%s \n", demac_data);
+    // eapp_print("end check");
     add_len = cc_enclave_get_add_text_size((const cc_enclave_sealed_data_t *)enc_data);
     data_len = cc_enclave_get_encrypted_text_size((const cc_enclave_sealed_data_t *)enc_data);
     if (data_len == 0 || add_len != strlen((const char*)ADD_DATA_RAW)) {
@@ -328,7 +328,7 @@ int set_ctx_key(SSL_CTX *ctx, const char *enc_key_file_name)
         goto end;
     }
     eapp_print("[set_ctx_key] sealed_data content in file:");
-    printHexsecGear((unsigned char *)enc_key, MAX_ENC_KEY_LEN);
+    // printHexsecGear((unsigned char *)enc_key, MAX_ENC_KEY_LEN);
     eapp_print("[set_ctx_key] Before unseal_enc_data()\n");
     res = unseal_enc_data(&raw_key, &raw_key_len, enc_key);
     if (res != CC_SUCCESS || raw_key_len == 0) {
@@ -365,7 +365,7 @@ end:
     return retval;
 }
 
-int start_enclave_tls(int client_fd,const char *cert, size_t cert_len, const char *enc_key, size_t enc_key_len)
+int start_enclave_tls(int client_fd,const char *cert, size_t cert_len, const char *enc_key, size_t enc_key_len,const char *report, size_t report_szie)
 {
     char buf[BUF_SIZE] = {0};
     const SSL_METHOD *meth = NULL;
@@ -377,48 +377,49 @@ int start_enclave_tls(int client_fd,const char *cert, size_t cert_len, const cha
     if (client_fd <= 0 || cert == NULL || cert_len == 0 || enc_key == NULL || enc_key_len == 0) {
         return CC_ERROR_BAD_PARAMETERS;
     }
-    eapp_print("[start_enclave_tls] Before SSL_load_error_strings()\n");
     SSL_load_error_strings();
-    eapp_print("[start_enclave_tls] Before SSLeay_add_ssl_algorithms()\n");
     SSLeay_add_ssl_algorithms();
-    eapp_print("[start_enclave_tls] Before TLS_method()\n");
     meth = TLS_method();
     if (meth == NULL) {
         return CC_FAIL;
     }
-    eapp_print("[start_enclave_tls] Before SSL_CTX_new()\n");
     ctx = SSL_CTX_new(meth);
     if (ctx == NULL) {
         return CC_FAIL;
     }
-    eapp_print("[start_enclave_tls] Before SSL_CTX_use_certificate_file()\n");
+
     if (SSL_CTX_use_certificate_file(ctx, cert, SSL_FILETYPE_PEM) <= 0) {
         goto end;
     }
-    eapp_print("[start_enclave_tls] Before set_ctx_key()\n");
+    //Set the encrypted key enc_key to the SSL context
     if (set_ctx_key(ctx, enc_key) != CC_SUCCESS){
         goto end;
     }
-    eapp_print("[start_enclave_tls] Before SSL_CTX_check_private_key()\n");
+    //Check if the private key matches the certificate
     if (!SSL_CTX_check_private_key(ctx)) {
         goto end;
     }
-    eapp_print("[start_enclave_tls] Before SSL_new()\n");
     ssl = SSL_new(ctx);
     if (ssl == NULL) {
         goto end;
     }
-    eapp_print("[start_enclave_tls] Before SSL_set_fd()\n");
     SSL_set_fd(ssl, client_fd);
-    eapp_print("[start_enclave_tls] Before SSL_set_cipher_list()\n");
     if (SSL_set_cipher_list(ssl, "ECDHE-RSA-AES128-GCM-SHA256") != 1) {
         goto end;
     }
-    eapp_print("[start_enclave_tls] Before SSL_accept()\n");
+    //TLS handshake
     if (SSL_accept(ssl) <= 0) {
         goto end;
     }
+    //send attest report
+    eapp_print("print report:");
+    printHexsecGear(report,REPORT_SIZE);
+    if (SSL_write(ssl, report, REPORT_SIZE) <= 0)
+    {
+        goto end;
+    }
     eapp_print("[start_enclave_tls] Before SSL_read()\n");
+    //read "hello enclave!" from client
     res = SSL_read(ssl, buf, BUF_SIZE -1); 
     if (res <= 0) {
         goto end;

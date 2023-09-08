@@ -32,6 +32,8 @@
 #define PASS_MAX 32
 #define MAX_ENC_KEY_LEN 4096
 #define ENC_KEY_FILE_NAME "enc_key"
+#define REPORT_SIZE 328
+#define PLENCLAVE_SIZE 424
 
 void printHexsecGear(unsigned char *c, int n)
 {
@@ -122,7 +124,7 @@ int get_password_and_seal_key(cc_enclave_t *context, const char *key_file_name, 
         goto end;
     }
     printf("After seal_key in host, enc_key length: %ld, content:\n", retval);
-    printHexsecGear((unsigned char *)enc_key, retval);
+    // printHexsecGear((unsigned char *)enc_key, retval);
     if (fwrite(enc_key, sizeof(char), retval, fp) != retval) {
         fclose(fp);
         res = CC_FAIL;
@@ -167,6 +169,7 @@ int main(int argc, const char *argv[])
     int tlsc_fd = -1;
     cc_enclave_result_t res = CC_FAIL;
     int retval = 0;
+    char report[REPORT_SIZE] = {0};
 
     if (argc != 4) {
         printf("usage: %s port cert_file key_file\n", argv[0]);
@@ -196,8 +199,11 @@ int main(int argc, const char *argv[])
         printf("get_password_and_seal_key error\n");
         goto end;
     }
+    memcpy(report, (char*)(context->private_data) + PLENCLAVE_SIZE-REPORT_SIZE, REPORT_SIZE);
+    printf("begin print report:");
+    printHexsecGear(report,REPORT_SIZE);
     res = start_enclave_tls(context, &retval, tlsc_fd, argv[2], strlen(argv[2]) + 1, ENC_KEY_FILE_NAME, 
-                            strlen(ENC_KEY_FILE_NAME) + 1);
+                            strlen(ENC_KEY_FILE_NAME) + 1,report,REPORT_SIZE+1);
     if (res !=  CC_SUCCESS || retval !=  CC_SUCCESS) {
         printf("start_enclave_tls error\n");			        
         goto end;

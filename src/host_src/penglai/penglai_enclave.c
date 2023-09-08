@@ -19,7 +19,7 @@
 #include "enclave_log.h"
 #include "penglai-enclave.h"
 #include "penglai_enclave.h"
-
+#define NONCE 12345
 extern list_ops_management g_list_ops;
 
 cc_enclave_result_t _penglai_create(cc_enclave_t *enclave, const enclave_features_t *features,
@@ -72,7 +72,7 @@ cc_enclave_result_t _penglai_create(cc_enclave_t *enclave, const enclave_feature
         enclave->private_data = (void *)penglai_enclave;
         result_cc = CC_SUCCESS;
     }
-
+    PLenclave_attest(penglai_enclave,NONCE);
     enclave_param_destroy(params);
     free(params);
     return result_cc;
