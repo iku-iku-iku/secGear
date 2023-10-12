@@ -194,14 +194,21 @@ int main(int argc, const char *argv[])
         return CC_FAIL;
     }
     printf("Create secgear enclave success\n");
-    // res = get_password_and_seal_key(context, argv[3], ENC_KEY_FILE_NAME);
-    // if (res !=  CC_SUCCESS) {
-    //     printf("get_password_and_seal_key error\n");
-    //     goto end;
-    // }
+   //  res = get_password_and_seal_key(context, argv[3], ENC_KEY_FILE_NAME);
+   //  if (res !=  CC_SUCCESS) {
+   //      printf("get_password_and_seal_key error\n");
+   //      goto end;
+   // }
     memcpy(report, (char*)(context->private_data) + PLENCLAVE_SIZE-REPORT_SIZE, REPORT_SIZE);
+    // 打印读取到的数据
     printf("begin print report:");
     printHexsecGear(report,REPORT_SIZE);
+    // for (int i = 0; i < REPORT_SIZE; i++)
+    // {
+    //     printf("%c", report[i]);
+    // }
+    // printf("\n");
+    // 传入report地址和大小
     res = start_enclave_tls(context, &retval, tlsc_fd, argv[2], strlen(argv[2]) + 1, ENC_KEY_FILE_NAME, 
                             strlen(ENC_KEY_FILE_NAME) + 1,report,REPORT_SIZE+1);
     if (res !=  CC_SUCCESS || retval !=  CC_SUCCESS) {

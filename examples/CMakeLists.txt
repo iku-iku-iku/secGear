@@ -33,10 +33,10 @@ if(CC_PL)
 		COMMAND cp ${LOCAL_ROOT_PATH}/inc/host_inc/penglai/*.h ${CMAKE_BINARY_DIR}/inc/secGear/
 		COMMAND cp ${LOCAL_ROOT_PATH}/inc/host_inc/penglai/*.edl ${CMAKE_BINARY_DIR}/inc/secGear/
 		COMMAND cp ${LOCAL_ROOT_PATH}/inc/enclave_inc/penglai/*.h ${CMAKE_BINARY_DIR}/inc/secGear/)
-	# add_subdirectory(seal_data)
+	#add_subdirectory(seal_data)
 	# add_subdirectory(helloworld)
     # add_subdirectory(helloworld_with_ocall)
     # add_subdirectory(calcu_enclave)
-	add_subdirectory(tls_enclave)
+    add_subdirectory(tls_enclave)
 	#add_subdirectory(lrt)
 endif()

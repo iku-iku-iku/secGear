@@ -2,3 +2,9 @@
 *.zip
 prebuilt/*
 sdk/*
+debug/*
+examples/tls_enclave/debug/*
+tools/codegener/_build/*
+bin/codegen
+examples/seal_data/enclave/seal_data_penglai-ELF
+examples/tls_enclave/enclave/tls_penglai-ELF

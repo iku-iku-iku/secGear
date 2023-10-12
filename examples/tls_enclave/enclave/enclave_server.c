@@ -173,7 +173,7 @@ int unseal_enc_data(char **data_p, size_t *data_len_p, const char *enc_data)
     BIO *r_key = NULL;
     BIO *r_prikey = NULL;
     RSA *rsa_key = NULL;
-    uint8_t *buf = NULL;//server.key content
+    uint8_t *buf = NULL;
     uint32_t buf_len, sealed_data_len;
     int res = 0;
     int retval = CC_FAIL;
@@ -182,7 +182,7 @@ int unseal_enc_data(char **data_p, size_t *data_len_p, const char *enc_data)
     size_t file_name_len = strlen(file_name);
     char *password = "12345";
     size_t pw_len = strlen(password);
-    char *enc_buf = malloc(4096);//server.key sealed
+    char *enc_buf = malloc(4096);
     size_t enc_buf_len = 4096;
     if (file_name == NULL || file_name_len == 0 || password == NULL || pw_len == 0 || enc_buf == NULL) {
         return 0;
@@ -221,7 +221,7 @@ int unseal_enc_data(char **data_p, size_t *data_len_p, const char *enc_data)
         goto end;
     }
     eapp_print("[unseal_enc_data] Before cc_enclave_get_sealed_data_size()\n");
-    sealed_data_len = cc_enclave_get_sealed_data_size(strlen((const char *)ADD_DATA_RAW),buf_len);//TODO: Change order?
+    sealed_data_len = cc_enclave_get_sealed_data_size(buf_len, strlen((const char *)ADD_DATA_RAW));
     if (sealed_data_len == UINT32_MAX || enc_buf_len < sealed_data_len) {
         goto end;
     }
@@ -234,7 +234,7 @@ int unseal_enc_data(char **data_p, size_t *data_len_p, const char *enc_data)
     uint32_t encrypt_add_len = cc_enclave_get_add_text_size((const cc_enclave_sealed_data_t *)enc_buf);
     uint32_t encrypt_data_len = cc_enclave_get_encrypted_text_size((const cc_enclave_sealed_data_t *)enc_buf);
 
-    uint8_t *decrypted_seal_data = malloc(encrypt_data_len);//seal server.key
+    uint8_t *decrypted_seal_data = malloc(encrypt_data_len);
     if (decrypted_seal_data == NULL) {
         retval = CC_ERROR_OUT_OF_MEMORY;
         goto end;
@@ -258,12 +258,12 @@ int unseal_enc_data(char **data_p, size_t *data_len_p, const char *enc_data)
             eapp_print("byte %d changed, before: %c, after: %c", i, buf[i], decrypted_seal_data[i]);
     }
     eapp_print("ADD_DATA:%s \n", demac_data);
-    char *add_data = NULL;//enc_key unsealed length
-    char *data = NULL;  //enc_key unsealed
+    char *add_data = NULL;
+    char *data = NULL;
     size_t add_len = 0;
     size_t data_len = 0;
     // int retval = CC_FAIL;
-    //暂时取消check,两次运行sealed_data不一样
+    //暂时取消check
     // eapp_print("- - - - -");
     // eapp_print("- - - - -");
     // eapp_print("- - - - -");

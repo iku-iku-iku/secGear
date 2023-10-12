@@ -17,14 +17,13 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS}  -s")
 if(${CMAKE_VERSION} VERSION_LESS "3.13.0")
     link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 endif()
-
+    
 add_executable(${OUTPUT} ${SOURCE_FILE} ${AUTO_FILES})
 
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0")
     target_link_directories(${OUTPUT} PRIVATE 
 	    ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 endif()
-
 target_include_directories(${OUTPUT} PRIVATE ${CMAKE_CURRENT_BINARY_DIR} /usr/local/openssl/include/)
 target_link_libraries(${OUTPUT} ssl crypto)
 
