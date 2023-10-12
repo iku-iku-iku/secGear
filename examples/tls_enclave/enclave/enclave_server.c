@@ -58,7 +58,16 @@ void printHexsecGear(unsigned char *c, int n)
         eapp_print("%d - %d: %s", m*16, m*16+left-1, buf);
     }
 }
-
+/**
+ * @brief Encrypts the RSA private key and fill into enc_buf
+ * @param file_name 
+ * @param file_name_len 
+ * @param password 
+ * @param pw_len 
+ * @param enc_buf 
+ * @param enc_buf_len 
+ * @return sealed_data_len
+ */
 size_t seal_key(const char *file_name, size_t file_name_len, char *password, size_t pw_len, 
                 char *enc_buf, size_t enc_buf_len)
 {
@@ -78,21 +87,18 @@ size_t seal_key(const char *file_name, size_t file_name_len, char *password, siz
     if (r_key == NULL) {
         goto end;
     };
-    eapp_print("[seal_key] Before PEM_read_bio_RSAPrivateKey()\n");
     rsa_key = PEM_read_bio_RSAPrivateKey(r_key, NULL, NULL, password);
     if (rsa_key == NULL) {
         goto end;
     };
-    eapp_print("[seal_key] Before BIO_new()\n");
     r_prikey = BIO_new(BIO_s_mem());
     if (r_prikey == NULL) {
         goto end;
     }
-    eapp_print("[seal_key] Before PEM_write_bio_RSAPrivateKey()\n");
     if (!PEM_write_bio_RSAPrivateKey(r_prikey, rsa_key, NULL, NULL, 0, NULL, NULL)) {
         goto end;
     }
-    eapp_print("[seal_key] Before BIO_ctrl_pending()\n");
+
     buf_len = BIO_ctrl_pending(r_prikey);
     if (buf_len == 0) {
         goto end;
@@ -107,7 +113,7 @@ size_t seal_key(const char *file_name, size_t file_name_len, char *password, siz
         goto end;
     }
     eapp_print("[seal_key] Before cc_enclave_get_sealed_data_size()\n");
-    sealed_data_len = cc_enclave_get_sealed_data_size(buf_len, strlen((const char *)ADD_DATA_RAW));
+    sealed_data_len = cc_enclave_get_sealed_data_size(strlen((const char *)ADD_DATA_RAW),buf_len);//TODO: Change order？
     if (sealed_data_len == UINT32_MAX || enc_buf_len < sealed_data_len) {
         goto end;
     }
@@ -142,12 +148,12 @@ size_t seal_key(const char *file_name, size_t file_name_len, char *password, siz
     eapp_print("-----  start check unseal out  -----");
     for(int i = 0; i < encrypt_data_len; i++){
         if(decrypted_seal_data[i] != buf[i])
-            eapp_print("byte %d changed, before: %c, after: %c", i, buf[i], decrypted_seal_data[i]);
+            eapp_print("[seal_key]byte %d changed, before: %c, after: %c", i, buf[i], decrypted_seal_data[i]);
     }
     res = sealed_data_len;
 
-    eapp_print("[seal_key] sealed_data_len: %d\n", sealed_data_len);
-    eapp_print("[seal_key] sealed_data content:");
+    // eapp_print("[seal_key] sealed_data_len: %d\n", sealed_data_len);
+    // eapp_print("[seal_key] sealed_data content:");
     // printHexsecGear((unsigned char *)enc_buf, sealed_data_len);
 end:
     eapp_print("[seal_key] Before end() res:%d\n",res);
@@ -167,7 +173,7 @@ int unseal_enc_data(char **data_p, size_t *data_len_p, const char *enc_data)
     BIO *r_key = NULL;
     BIO *r_prikey = NULL;
     RSA *rsa_key = NULL;
-    uint8_t *buf = NULL;
+    uint8_t *buf = NULL;//server.key content
     uint32_t buf_len, sealed_data_len;
     int res = 0;
     int retval = CC_FAIL;
@@ -176,7 +182,7 @@ int unseal_enc_data(char **data_p, size_t *data_len_p, const char *enc_data)
     size_t file_name_len = strlen(file_name);
     char *password = "12345";
     size_t pw_len = strlen(password);
-    char *enc_buf = malloc(4096);
+    char *enc_buf = malloc(4096);//server.key sealed
     size_t enc_buf_len = 4096;
     if (file_name == NULL || file_name_len == 0 || password == NULL || pw_len == 0 || enc_buf == NULL) {
         return 0;
@@ -215,7 +221,7 @@ int unseal_enc_data(char **data_p, size_t *data_len_p, const char *enc_data)
         goto end;
     }
     eapp_print("[unseal_enc_data] Before cc_enclave_get_sealed_data_size()\n");
-    sealed_data_len = cc_enclave_get_sealed_data_size(buf_len, strlen((const char *)ADD_DATA_RAW));
+    sealed_data_len = cc_enclave_get_sealed_data_size(strlen((const char *)ADD_DATA_RAW),buf_len);//TODO: Change order?
     if (sealed_data_len == UINT32_MAX || enc_buf_len < sealed_data_len) {
         goto end;
     }
@@ -228,7 +234,7 @@ int unseal_enc_data(char **data_p, size_t *data_len_p, const char *enc_data)
     uint32_t encrypt_add_len = cc_enclave_get_add_text_size((const cc_enclave_sealed_data_t *)enc_buf);
     uint32_t encrypt_data_len = cc_enclave_get_encrypted_text_size((const cc_enclave_sealed_data_t *)enc_buf);
 
-    uint8_t *decrypted_seal_data = malloc(encrypt_data_len);
+    uint8_t *decrypted_seal_data = malloc(encrypt_data_len);//seal server.key
     if (decrypted_seal_data == NULL) {
         retval = CC_ERROR_OUT_OF_MEMORY;
         goto end;
@@ -252,12 +258,12 @@ int unseal_enc_data(char **data_p, size_t *data_len_p, const char *enc_data)
             eapp_print("byte %d changed, before: %c, after: %c", i, buf[i], decrypted_seal_data[i]);
     }
     eapp_print("ADD_DATA:%s \n", demac_data);
-    char *add_data = NULL;
-    char *data = NULL;
+    char *add_data = NULL;//enc_key unsealed length
+    char *data = NULL;  //enc_key unsealed
     size_t add_len = 0;
     size_t data_len = 0;
     // int retval = CC_FAIL;
-    //暂时取消check
+    //暂时取消check,两次运行sealed_data不一样
     // eapp_print("- - - - -");
     // eapp_print("- - - - -");
     // eapp_print("- - - - -");
@@ -327,7 +333,7 @@ int set_ctx_key(SSL_CTX *ctx, const char *enc_key_file_name)
     if (BIO_read(key_bio, enc_key, MAX_ENC_KEY_LEN) <= 0) {
         goto end;
     }
-    eapp_print("[set_ctx_key] sealed_data content in file:");
+    // eapp_print("[set_ctx_key] sealed_data content in file:");
     // printHexsecGear((unsigned char *)enc_key, MAX_ENC_KEY_LEN);
     eapp_print("[set_ctx_key] Before unseal_enc_data()\n");
     res = unseal_enc_data(&raw_key, &raw_key_len, enc_key);

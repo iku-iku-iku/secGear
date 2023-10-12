@@ -194,11 +194,11 @@ int main(int argc, const char *argv[])
         return CC_FAIL;
     }
     printf("Create secgear enclave success\n");
-    res = get_password_and_seal_key(context, argv[3], ENC_KEY_FILE_NAME);
-    if (res !=  CC_SUCCESS) {
-        printf("get_password_and_seal_key error\n");
-        goto end;
-    }
+    // res = get_password_and_seal_key(context, argv[3], ENC_KEY_FILE_NAME);
+    // if (res !=  CC_SUCCESS) {
+    //     printf("get_password_and_seal_key error\n");
+    //     goto end;
+    // }
     memcpy(report, (char*)(context->private_data) + PLENCLAVE_SIZE-REPORT_SIZE, REPORT_SIZE);
     printf("begin print report:");
     printHexsecGear(report,REPORT_SIZE);
