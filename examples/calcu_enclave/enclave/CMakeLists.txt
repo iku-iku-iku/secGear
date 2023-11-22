@@ -205,7 +205,7 @@ if(CC_PL)
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${OUTPUT}
         DEPENDS ${APP_C_OBJ} ${SOURCE_C_OBJS} ${SDK_APP_LIB} ${MUSL_LIBC} ${GCC_LIB}
-        COMMAND ld -static -L${SDK_LIB_DIR} -L${MUSL_LIB_DIR} -L/usr/lib64
+        COMMAND ld -static -L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -L${SDK_LIB_DIR} -L${MUSL_LIB_DIR} -L/usr/lib64
             -L${CALCU_LIB_DIR} -lpenglai_calcu_lib -lpenglai_tcalcu
             -lpenglai-enclave-eapp -lsecgear_tee -lc
             -o ${CMAKE_CURRENT_SOURCE_DIR}/${OUTPUT} ${APP_C_OBJ} ${SOURCE_C_OBJS} ${SDK_APP_LIB} ${SECGEAR_TEE_LIB}

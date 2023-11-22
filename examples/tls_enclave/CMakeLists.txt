@@ -27,6 +27,7 @@ if (NOT DEFINED SSL_PATH)
 		set(SSL_PATH "/opt/itrustee_sdk/itrustee_sdk_ssl")
     elseif(CC_PL)
         set(SSL_PATH "/root/dev/sdk/penglai_sdk_ssl")
+        set(PL_SSLLIB_PATH "/opt/penglai/openssl")
 	endif()
 endif()
 
@@ -37,6 +38,7 @@ endif()
 
 if(CC_PL)
     set(CODETYPE penglai)
+    set(PL_SSLLIB_PATH "/opt/penglai/openssl")
     add_definitions(-DPATH="${CMAKE_CURRENT_SOURCE_DIR}/enclave/tls_penglai-ELF")
 endif()
 
