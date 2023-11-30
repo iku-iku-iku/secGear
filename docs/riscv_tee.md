@@ -60,10 +60,39 @@ https://ipads.se.sjtu.edu.cn:1313/d/6a464e02cd3d4c1bafb0/
 
 此时debug目录的bin目录下已经有secgear_helloworld可执行文件了。在此目录下运行程序：
 
+	insmod ~/penglai.ko
 	./bin/secgear_helloworld
 
-别忘了在此之前insmod penglai.ko
+
 
 运行结果
 ---------
 <img src="secGear_RISC-V_Penglai_demo.jpeg" alt="secGear-Penglai" style="zoom:80%;" />
+
+### Run other demo
+
+检查`secGear/examples/CMakeLists.txt`中的demo对应部分编译模块是否启用
+
+	if(CC_PL)
+	add_custom_command(TARGET copy
+		POST_BUILD
+		COMMAND cp ${LOCAL_ROOT_PATH}/inc/host_inc/penglai/*.h ${CMAKE_BINARY_DIR}/inc/secGear/
+		COMMAND cp ${LOCAL_ROOT_PATH}/inc/host_inc/penglai/*.edl ${CMAKE_BINARY_DIR}/inc/secGear/
+		COMMAND cp ${LOCAL_ROOT_PATH}/inc/enclave_inc/penglai/*.h ${CMAKE_BINARY_DIR}/inc/secGear/)
+	add_subdirectory(seal_data)
+	add_subdirectory(helloworld)
+    add_subdirectory(helloworld_with_ocall)
+    add_subdirectory(calcu_enclave)
+    add_subdirectory(tls_enclave)
+	add_subdirectory(lrt)
+	endif()
+
+启用对应demo 模块后，进入编译目录`secGear/debug`，执行下述指令：
+
+```shell
+cd ./secGear/debug
+cmake -DCMAKE_BUILD_TYPE=Debug -DENCLAVE=PL -DSDK_PATH=root/dev/sdk -DSSL_PATH=/root/dev/sdk/penglai_sdk_ssl -DPL_SSLLIB_PATH=/opt/penglai/openssl .. && make && make install
+```
+
+编译成功后，其他demo位于`./secGear/debug/bin`目录下,可直接执行除**tls_enclave**之外的demo
+
