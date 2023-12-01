@@ -87,12 +87,17 @@ https://ipads.se.sjtu.edu.cn:1313/d/6a464e02cd3d4c1bafb0/
 	add_subdirectory(lrt)
 	endif()
 
-启用对应demo 模块后，进入编译目录`secGear/debug`，执行下述指令：
+启用对应demo 模块后，下载安装penglai-openssl相关库([rpm包下载链接](https://ipads.se.sjtu.edu.cn:1313/f/70ba3f9f0f8e49bf83ec/))：
+
+	rmp -ivh penglai-ssl-2.10-1.riscv64.rpm
+
+
+进入编译目录`secGear/debug`，执行下述指令：
 
 ```shell
 cd ./secGear/debug
 cmake -DCMAKE_BUILD_TYPE=Debug -DENCLAVE=PL -DSDK_PATH=root/dev/sdk -DSSL_PATH=/root/dev/sdk/penglai_sdk_ssl -DPL_SSLLIB_PATH=/opt/penglai/openssl .. && make && make install
 ```
 
-编译成功后，其他demo位于`./secGear/debug/bin`目录下,可直接执行除**tls_enclave**之外的demo
+编译成功后，其他demo位于`./secGear/debug/bin`目录下,当前可直接执行除**tls_enclave**之外的demo
 
