@@ -147,6 +147,9 @@ let set_ecall_func (tf : trusted_func) =
         "    size_t out_buf_size,";
         "    size_t* output_bytes_written)";
         "{";
+        "#ifdef REMOTE_ATTESTATION";
+        "extern int __decrypt_in_enclave(char* buf, int buf_len, const char* func_name); in_buf_size = __decrypt_in_enclave((char*)in_buf, (int)in_buf_size, __func__);";
+        "#endif";
         "    cc_enclave_result_t result = CC_FAIL;";
         "    size_t in_buf_offset = 0;";
         "    size_t out_buf_offset = 0;";
@@ -179,6 +182,9 @@ let set_ecall_func (tf : trusted_func) =
         "    /* Sucess */";
         "    result = CC_SUCCESS;";
         "    *output_bytes_written = out_buf_offset;";
+        "#ifdef REMOTE_ATTESTATION";
+        "extern void __encrypt_in_enclave(char* buf, int buf_len, const char* func_name); __encrypt_in_enclave((char*)out_buf, (int)out_buf_size, __func__);";
+        "#endif";
         "done:";
         "    return result;";
         "}";
@@ -322,7 +328,7 @@ let set_main_func =
         "        EAPP_RETURN(0);";
         "    }";
         "    if(copy_untrusted_mem_size > DEFAULT_UNTRUSTED_SIZE){";
-        "        eapp_print(\"Size to copy is larger than untrusted mem size \\n\");";
+        "        eapp_print(\"Size to copy(0x%x) is larger than untrusted mem size(0x%x) \\n\", copy_untrusted_mem_size, DEFAULT_UNTRUSTED_SIZE);";
         "        EAPP_RETURN(0);";
         "    }";
         "";
